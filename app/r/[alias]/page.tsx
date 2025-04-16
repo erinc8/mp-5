@@ -1,17 +1,15 @@
-// app/r/[alias]/page.tsx
 import { redirect } from 'next/navigation'
-import { connect } from '@/lib/mongodb'
+import { connect } from '@/lib/mongodb' // adjust import to your db connection
 
-export default async function RedirectPage({
-                                               params
-                                           }: {
-    params: { alias: string }
-}) {
+export default async function RedirectPage({ params }: { params: { alias: string } }) {
     const db = await connect()
-    const urlDoc = await db.collection('urls').findOne({
-        alias: params.alias
-    })
+    const found = await db.collection('urls').findOne({ alias: params.alias })
 
-    if (!urlDoc) return <h1>URL not found</h1>
-    redirect(urlDoc.originalUrl)
+    if (!found) {
+        // Optionally, render a 404 or error message
+        return <h1>Short URL not found</h1>
+    }
+
+    // Redirect to the original URL
+    redirect(found.url)
 }
