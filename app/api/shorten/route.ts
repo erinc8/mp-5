@@ -1,53 +1,61 @@
-// API route to create shortened URLs (POST handler)
+// app/api/shorten/route.ts
 import { NextResponse } from 'next/server'
 import { connect } from '@/lib/mongodb'
-import { isValidUrl } from '@/utils/validation'
+import { MongoServerError } from 'mongodb'
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
     try {
+        const { url, alias } = await req.json()
 
-        const { url, alias } = await request.json()
-
+        // Validate inputs
         if (!url || !alias) {
             return NextResponse.json(
-                { error: "Both URL and alias are required" },
-                { status: 400 }
-            )
-        }
-
-
-        if (!isValidUrl(url)) {
-            return NextResponse.json(
-                { error: "Invalid URL format" },
+                { error: "URL and alias required" },
                 { status: 400 }
             )
         }
 
         const db = await connect()
 
-        // Check alias availability
-        const existing = await db.collection('urls').findOne({ alias })
-        if (existing) {
+        // Check existing alias with case-insensitive search
+        const exists = await db.collection('urls').findOne({
+            alias: { $regex: new RegExp(`^${alias}$`, 'i') }
+        })
+
+        if (exists) {
             return NextResponse.json(
                 { error: "Alias already exists" },
                 { status: 409 }
             )
         }
 
-        // Insert new URL
-        await db.collection('urls').insertOne({
+        // Insert new URL with atomic operation
+        const result = await db.collection('urls').insertOne({
             url,
             alias,
             clicks: 0,
             createdAt: new Date()
         })
 
+        if (!result.acknowledged) {
+            throw new Error('Failed to insert document')
+        }
+
         return NextResponse.json({
             shortUrl: `${process.env.NEXT_PUBLIC_HOST}/r/${alias}`
         })
 
     } catch (error) {
-        console.error('API Error:', error)
+        console.error('API error:', error)
+
+        // Handle duplicate key errors specifically
+        if (error instanceof MongoServerError && error.code === 11000) {
+            return NextResponse.json(
+                { error: "Alias already exists" },
+                { status: 409 }
+            )
+        }
+
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

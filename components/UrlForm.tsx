@@ -11,72 +11,83 @@ export default function UrlForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
-        setResult('')
 
         try {
-            // Validate URL first
-            new URL(url) // Throws error for invalid URLs
-        } catch {
-            setError('Please enter a valid URL')
-            return
-        }
+            // Basic client-side validation
+            new URL(url)
 
-        try {
             const res = await fetch('/api/shorten', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url, alias })
             })
 
-            // Handle non-JSON responses
-            const contentType = res.headers.get('content-type')
-            if (!contentType?.includes('application/json')) {
-                throw new Error('Invalid server response')
-            }
+            const text = await res.text()
+            const data = text ? JSON.parse(text) : {}
 
-            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Request failed')
 
-            if (!res.ok) {
-                throw new Error(data.error || 'Request failed')
-            }
-
-            setResult(`${window.location.origin}/${data.alias}`)
+            setResult(data.shortUrl)
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error')
         }
     }
 
-
-
-
-
     return (
-        <form onSubmit={handleSubmit}>
-            <input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="Enter URL"
-                required
-            />
-            <input
-                type="text"
-                value={alias}
-                onChange={(e) => setAlias(e.target.value)}
-                placeholder="Custom alias (optional)"
-            />
-            <button type="submit">Shorten</button>
-
-            {result && (
+        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+            <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <p>Short URL: {result}</p>
-                    <button onClick={() => navigator.clipboard.writeText(result)}>
-                        Copy
-                    </button>
+                    <label className="block text-sm font-medium mb-1">URL to shorten</label>
+                    <input
+                        type="url"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="https://example.com"
+                        className="w-full p-2 border rounded"
+                        required
+                    />
                 </div>
-            )}
 
-            {error && <p className="error">{error}</p>}
-        </form>
+                <div>
+                    <label className="block text-sm font-medium mb-1">Custom alias</label>
+                    <input
+                        type="text"
+                        value={alias}
+                        onChange={(e) => setAlias(e.target.value)}
+                        placeholder="my-custom-alias"
+                        className="w-full p-2 border rounded"
+                        required
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                >
+                    Shorten URL
+                </button>
+
+                {error && <p className="text-red-500 text-sm">{error}</p>}
+                {result && (
+                    <div className="mt-4 p-3 bg-gray-100 rounded">
+                        <p className="font-medium">Short URL:</p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <input
+                                type="text"
+                                value={result}
+                                readOnly
+                                className="flex-1 p-2 border rounded"
+                            />
+                            <button
+                                onClick={() => navigator.clipboard.writeText(result)}
+                                className="bg-gray-200 p-2 rounded"
+                            >
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </form>
+        </div>
     )
 }

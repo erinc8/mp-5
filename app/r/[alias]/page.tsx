@@ -1,15 +1,28 @@
+// app/r/[alias]/page.tsx
 import { redirect } from 'next/navigation'
-import { connect } from '@/lib/mongodb' // adjust import to your db connection
+import clientPromise from '@/lib/mongodb'
 
-export default async function RedirectPage({ params }: { params: { alias: string } }) {
-    const db = await connect()
-    const found = await db.collection('urls').findOne({ alias: params.alias })
+export default async function RedirectPage({
+                                               params: { alias }
+                                           }: {
+    params: { alias: string }
+}) {
+    try {
+        const client = await clientPromise
+        const db = client.db('url_shortener')
 
-    if (!found) {
-        // Optionally, render a 404 or error message
-        return <h1>Short URL not found</h1>
+        // Case-insensitive search with regex
+        const urlDoc = await db.collection('urls').findOne({
+            alias: { $regex: new RegExp(`^${alias}$`, 'i') }
+        })
+
+        if (!urlDoc) {
+            redirect('/404') // Or return notFound() from next/navigation
+        }
+
+        redirect(urlDoc.url)
+    } catch (error) {
+        console.error('Redirect failed:', error)
+        redirect('/error')
     }
-
-    // Redirect to the original URL
-    redirect(found.url)
 }
