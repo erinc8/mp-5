@@ -1,4 +1,4 @@
-// components/UrlForm.tsx
+
 'use client'
 import { useState } from 'react'
 
@@ -37,7 +37,7 @@ export default function UrlForm() {
         <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1">URL to shorten</label>
+                    <label className="block text-sm font-medium mb-1 text-black">URL to shorten</label>
                     <input
                         type="url"
                         value={url}
@@ -49,7 +49,7 @@ export default function UrlForm() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">Custom alias</label>
+                    <label className="block text-sm font-medium mb-1 text-black">Custom alias</label>
                     <input
                         type="text"
                         value={alias}
@@ -62,21 +62,21 @@ export default function UrlForm() {
 
                 <button
                     type="submit"
-                    className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                    className="w-full bg-blue-500 accent-black p-2 rounded hover:bg-blue-600"
                 >
                     Shorten URL
                 </button>
 
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 {result && (
-                    <div className="mt-4 p-3 bg-gray-100 rounded">
+                    <div className="mt-4 p-3 accent-black rounded">
                         <p className="font-medium">Short URL:</p>
                         <div className="flex items-center gap-2 mt-2">
                             <input
                                 type="text"
                                 value={result}
                                 readOnly
-                                className="flex-1 p-2 border rounded"
+                                className="flex-1 p-2 border rounded text-black"
                             />
                             <button
                                 onClick={() => navigator.clipboard.writeText(result)}

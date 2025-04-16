@@ -1,4 +1,4 @@
-// app/api/shorten/route.ts
+
 import { NextResponse } from 'next/server'
 import { connect } from '@/lib/mongodb'
 import { MongoServerError } from 'mongodb'
@@ -17,7 +17,6 @@ export async function POST(req: Request) {
 
         const db = await connect()
 
-        // Check existing alias with case-insensitive search
         const exists = await db.collection('urls').findOne({
             alias: { $regex: new RegExp(`^${alias}$`, 'i') }
         })
@@ -29,7 +28,7 @@ export async function POST(req: Request) {
             )
         }
 
-        // Insert new URL with atomic operation
+
         const result = await db.collection('urls').insertOne({
             url,
             alias,
