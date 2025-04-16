@@ -10,26 +10,45 @@ export default function UrlForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setError('')
+        setResult('')
 
         try {
-            const response = await fetch('/api/shorten', {
+            // Validate URL first
+            new URL(url) // Throws error for invalid URLs
+        } catch {
+            setError('Please enter a valid URL')
+            return
+        }
+
+        try {
+            const res = await fetch('/api/shorten', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ originalUrl: url, alias })
+                body: JSON.stringify({ url, alias })
             })
 
-            const data = await response.json()
-            if (!response.ok) throw new Error(data.error)
+            // Handle non-JSON responses
+            const contentType = res.headers.get('content-type')
+            if (!contentType?.includes('application/json')) {
+                throw new Error('Invalid server response')
+            }
 
-            setResult(data.shortUrl)
-            setError('')
+            const data = await res.json()
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Request failed')
+            }
+
+            setResult(`${window.location.origin}/${data.alias}`)
         } catch (err) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            setError(err.message)
-            setResult('')
+            setError(err instanceof Error ? err.message : 'Unknown error')
         }
     }
+
+
+
+
 
     return (
         <form onSubmit={handleSubmit}>
