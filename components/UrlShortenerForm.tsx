@@ -1,29 +1,34 @@
-// components/UrlShortenerForm.tsx
-
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function UrlShortenerForm() {
+    const [origin, setOrigin] = useState('')
     const [url, setUrl] = useState('')
     const [alias, setAlias] = useState('')
-    const [error, setError] = useState('')
     const [shortUrl, setShortUrl] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        setOrigin(window.location.origin)
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
         setShortUrl('')
+        setLoading(true)
 
         // Basic frontend URL validation
         try {
             new URL(url)
         } catch {
             setError('Please enter a valid URL.')
+            setLoading(false)
             return
         }
 
-        // Call your backend API to create the short URL
-        const res = await fetch('/api/create', {
+        const res = await fetch('/api/shorten', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url, alias }),
@@ -33,58 +38,80 @@ export default function UrlShortenerForm() {
         if (!res.ok) {
             setError(data.error || 'Something went wrong.')
         } else {
-            setShortUrl(`${window.location.origin}/${alias}`)
+            setShortUrl(`${origin}/${alias}`)
             setUrl('')
             setAlias('')
+        }
+        setLoading(false)
+    }
+
+    const copyToClipboard = () => {
+        if (shortUrl) {
+            navigator.clipboard.writeText(shortUrl)
         }
     }
 
     return (
-        <div className="flex flex-col items-center min-h-screen bg-green-100">
-            <h1 className="text-4xl font-mono font-bold mt-6 mb-2">CS391 URL Shortener</h1>
-            <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8 mt-8">
-                <h2 className="text-2xl font-mono font-bold mb-2 text-center">URL Shortener</h2>
-                <p className="text-center text-gray-600 mb-6">
-                    Shorten your long URLs into compact, shareable links
-                </p>
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <label className="font-semibold">URL</label>
+        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-md mx-auto">
+            <h1 className="text-3xl font-bold text-center mb-6 text-gray-300">URL Shortener</h1>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">Long URL</label>
                     <input
                         type="text"
-                        className="border rounded px-3 py-2"
-                        placeholder="https://example.com/very/long/url"
                         value={url}
                         onChange={e => setUrl(e.target.value)}
+                        placeholder="https://example.com/very/long/url"
+                        className="w-full p-2 border rounded text-gray-700"
                         required
+                        disabled={loading}
                     />
-                    <label className="font-semibold">Custom Alias</label>
-                    <div className="flex items-center">
-            <span className="bg-gray-100 px-2 py-2 rounded-l text-gray-500 text-sm border border-r-0 border-gray-300">
-              {typeof window !== 'undefined' ? window.location.origin : 'https://your-app.com'}/
+                </div>
+                <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">Custom Alias</label>
+                    <div className="flex">
+            <span className="bg-gray-100 p-2 rounded-l border border-r-0 text-gray-400">
+              {origin ? `${origin}/` : 'Loading...'}
             </span>
                         <input
                             type="text"
-                            className="border rounded-r px-3 py-2 flex-1"
-                            placeholder="your-custom-alias"
                             value={alias}
                             onChange={e => setAlias(e.target.value)}
+                            placeholder="your-alias"
+                            className="flex-1 p-2 border rounded-r text-gray-700"
                             required
+                            disabled={loading}
                         />
                     </div>
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
-                    {shortUrl && (
-                        <p className="text-green-600 text-sm">
-                            Shortened URL: <a href={shortUrl} className="underline" target="_blank" rel="noopener noreferrer">{shortUrl}</a>
-                        </p>
-                    )}
-                    <button
-                        type="submit"
-                        className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded mt-2"
-                    >
-                        Shorten
-                    </button>
-                </form>
-            </div>
+                </div>
+                {error && <div className="text-red-500 text-sm">{error}</div>}
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full p-2 text-white font-medium rounded ${loading ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`}
+                >
+                    {loading ? 'Shortening...' : 'Shorten URL'}
+                </button>
+            </form>
+            {shortUrl && (
+                <div className="mt-6 p-4 bg-green-50 rounded">
+                    <p className="font-medium mb-2 text-gray-700">Your shortened URL:</p>
+                    <div className="flex items-center">
+                        <input
+                            type="text"
+                            value={shortUrl}
+                            readOnly
+                            className="flex-1 p-2 border rounded-l text-gray-700"
+                        />
+                        <button
+                            onClick={copyToClipboard}
+                            className="bg-blue-500 text-white p-2 rounded-r"
+                        >
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
