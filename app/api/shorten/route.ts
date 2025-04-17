@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server'
 import clientPromise from '@/lib/mongodb'
 
@@ -7,13 +8,10 @@ export async function POST(req: Request) {
 
 
         if (!url || !alias) {
-            return NextResponse.json({ error: "URL and alias are required" }, { status: 400 })
-        }
-
-        try {
-            new URL(url)
-        } catch {
-            return NextResponse.json({ error: "Invalid URL format" }, { status: 400 })
+            return NextResponse.json(
+                { error: "URL and alias are required" },
+                { status: 400 }
+            )
         }
 
         const client = await clientPromise
@@ -22,9 +20,13 @@ export async function POST(req: Request) {
 
         const exists = await db.collection('urls').findOne({ alias })
         if (exists) {
-            return NextResponse.json({ error: "Alias already exists" }, { status: 409 })
+            return NextResponse.json(
+                { error: "Alias 'erin' already exists" },
+                { status: 409 }
+            )
         }
 
+        // Insert new URL
         await db.collection('urls').insertOne({
             url,
             alias,
@@ -37,7 +39,10 @@ export async function POST(req: Request) {
         })
 
     } catch (error) {
-
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+        console.error('API error:', error)
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 }
+        )
     }
 }
