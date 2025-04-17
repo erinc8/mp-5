@@ -14,14 +14,12 @@ export default function UrlForm() {
         setResult('')
         setLoading(true)
 
-        // Auto-fix URL if protocol is missing
         let processedUrl = url
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
             processedUrl = `https://${url}`
             setUrl(processedUrl)
         }
 
-        // Validate URL
         try {
             const urlObj = new URL(processedUrl)
             if (!urlObj.protocol.startsWith('http')) {
@@ -36,19 +34,19 @@ export default function UrlForm() {
         try {
             const res = await fetch('/api/shorten', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ url: processedUrl, alias })
-            })
+            });
 
-            const contentType = res.headers.get('content-type') || ''
-            if (!contentType.includes('application/json')) {
-                const text = await res.text()
-                throw new Error('Server returned a non-JSON response')
+            const contentType = res.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Request failed');
+                setResult(data.shortUrl);
+            } else {
+                const text = await res.text();
+                setError('Server returned a non-JSON response');
             }
-
-            const data = await res.json()
-            if (!res.ok) throw new Error(data.error || 'Request failed')
-            setResult(data.shortUrl)
         } catch (err: any) {
             setError(err.message)
         } finally {

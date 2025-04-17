@@ -5,10 +5,10 @@ export async function POST(req: Request) {
     try {
         const { url, alias } = await req.json()
 
+
         if (!url || !alias) {
             return NextResponse.json({ error: "URL and alias are required" }, { status: 400 })
         }
-
 
         try {
             new URL(url)
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
         const client = await clientPromise
         const db = client.db('url-shortener')
 
-        // Check for duplicate alias
+
         const exists = await db.collection('urls').findOne({ alias })
         if (exists) {
             return NextResponse.json({ error: "Alias already exists" }, { status: 409 })
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         })
 
     } catch (error) {
-        console.error('API error:', error)
+
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
