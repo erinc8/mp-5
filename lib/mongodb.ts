@@ -1,33 +1,20 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient } from 'mongodb'
 
-if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI environment variable not set');
+declare global {
+    var _mongoClientPromise: Promise<MongoClient> | undefined
 }
 
-const uri = process.env.MONGODB_URI;
-const options = {};
+const uri = process.env.MONGODB_URI
+if (!uri) throw new Error('MONGODB_URI not set in .env.local')
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
-
-// Cast global to include _mongoClientPromise property
-const globalWithMongo = global as typeof global & {
-    _mongoClientPromise?: Promise<MongoClient>;
-};
-
+let clientPromise: Promise<MongoClient>
 if (process.env.NODE_ENV === 'development') {
-    if (!globalWithMongo._mongoClientPromise) {
-        client = new MongoClient(uri, options);
-        globalWithMongo._mongoClientPromise = client.connect();
+    if (!global._mongoClientPromise) {
+        global._mongoClientPromise = new MongoClient(uri).connect()
     }
-    clientPromise = globalWithMongo._mongoClientPromise;
+    clientPromise = global._mongoClientPromise
 } else {
-    client = new MongoClient(uri, options);
-    clientPromise = client.connect();
+    clientPromise = new MongoClient(uri).connect()
 }
 
-export async function connect() {
-    const client = await clientPromise;
-    return client.db('your-database-name'); // Replace with your DB name
-}
-export default clientPromise;
+export default clientPromise
