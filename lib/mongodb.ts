@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'development') {
     client = new MongoClient(uri, options);
     clientPromise = client.connect();
 }
-// Add this function to get the database connection
+
 export async function connect() {
     const client = await clientPromise;
     return client.db('your-database-name'); // Replace with your DB name

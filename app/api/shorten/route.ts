@@ -1,8 +1,8 @@
-// app/api/shorten/route.ts
+
 import { NextResponse } from 'next/server'
 import { MongoServerError } from 'mongodb'
 import clientPromise from '@/lib/mongodb'
-// Example usage in API route
+
 
 
 export async function GET() {
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     try {
         const { url, alias } = await req.json()
 
-        // Validate inputs
+
         if (!url || !alias) {
             return NextResponse.json(
                 { error: "URL and alias are required" },
@@ -29,11 +29,11 @@ export async function POST(req: Request) {
             )
         }
 
-        // Get database connection
+
         const client = await clientPromise
         const db = client.db('url-shortener') // Use your actual DB name
 
-        // Insert new URL (MongoDB will handle uniqueness via index)
+
         const result = await db.collection('urls').insertOne({
             url,
             alias,
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error('API error:', error)
 
-        // Handle duplicate key errors
+
         if (error instanceof MongoServerError && error.code === 11000) {
             return NextResponse.json(
                 { error: "Alias already exists" },
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
             )
         }
 
-        // Generic error response
+
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
