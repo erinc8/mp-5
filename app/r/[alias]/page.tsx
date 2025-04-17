@@ -1,22 +1,19 @@
-
 import { redirect } from 'next/navigation'
-import { connect } from '@/lib/mongodb'
+import clientPromise from '@/lib/mongodb'
 
-export default async function RedirectPage({
-                                               params
-                                           }: {
-    params: { alias: string }
+export default async function Page({
+                                       params
+                                   }: {
+    params: Promise<{ alias: string }> // Correct type for Next.js 15
 }) {
-    try {
-        const db = await connect()
-        const urlDoc = await db.collection('urls').findOne({ alias: params.alias })
+    // Await the params Promise first
+    const { alias } = await params
 
-        if (!urlDoc) return <h1>URL not found</h1>
-        redirect(urlDoc.url)
+    // Then handle database connection
+    const client = await clientPromise
+    const db = client.db('url-shortener')
+    const entry = await db.collection('urls').findOne({ alias })
 
-    } catch (error) {
-        console.error('Redirect error:', error)
-
-        throw error
-    }
+    if (!entry) redirect('/not-found')
+    redirect(entry.url)
 }
