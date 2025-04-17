@@ -43,7 +43,7 @@ export default function UrlForm() {
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         placeholder="https://example.com"
-                        className="w-full p-2 border rounded"
+                        className="w-full p-2 border rounded text-black"
                         required
                     />
                 </div>
@@ -55,7 +55,7 @@ export default function UrlForm() {
                         value={alias}
                         onChange={(e) => setAlias(e.target.value)}
                         placeholder="my-custom-alias"
-                        className="w-full p-2 border rounded"
+                        className="w-full p-2 border rounded text-black"
                         required
                     />
                 </div>
