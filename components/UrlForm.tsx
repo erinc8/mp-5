@@ -70,7 +70,7 @@ export default function UrlForm() {
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 {result && (
                     <div className="mt-4 p-3 accent-black rounded">
-                        <p className="font-medium">Short URL:</p>
+                        <p className="font-medium text-black">Short URL:</p>
                         <div className="flex items-center gap-2 mt-2">
                             <input
                                 type="text"
@@ -80,7 +80,7 @@ export default function UrlForm() {
                             />
                             <button
                                 onClick={() => navigator.clipboard.writeText(result)}
-                                className="bg-gray-200 p-2 rounded"
+                                className="bg-gray-200 p-2 rounded text-black"
                             >
                                 Copy
                             </button>
