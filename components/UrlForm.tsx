@@ -14,46 +14,44 @@ export default function UrlForm() {
         setResult('')
         setLoading(true)
 
-        let processedUrl = url
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            processedUrl = `https://${url}`
-            setUrl(processedUrl)
-        }
-
         try {
-            const urlObj = new URL(processedUrl)
-            if (!urlObj.protocol.startsWith('http')) {
-                throw new Error('URL must start with http:// or https://')
+            // Process URL
+            let processedUrl = url.trim()
+            if (!/^https?:\/\//i.test(processedUrl)) {
+                processedUrl = `https://${processedUrl}`
             }
-        } catch (err) {
-            setError('Please enter a valid URL including http:// or https://')
-            setLoading(false)
-            return
-        }
 
-        try {
+            // Validate URL
+            new URL(processedUrl) // Throws error for invalid URLs
+
+            // API request
             const res = await fetch('/api/shorten', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ url: processedUrl, alias })
-            });
+                body: JSON.stringify({
+                    url: processedUrl,
+                    alias: alias.trim()
+                })
+            })
 
-            const contentType = res.headers.get('content-type') || '';
-            if (contentType.includes('application/json')) {
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Request failed');
-                setResult(data.shortUrl);
-            } else {
-                const text = await res.text();
-                setError('Server returned a non-JSON response');
+            // Handle response
+            const data = await res.json()
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to create short URL')
             }
+
+            // Set result with full URL
+            setResult(`${window.location.origin}/r/${data.alias}`)
+
         } catch (err: any) {
-            setError(err.message)
+            setError(
+                err.message || 'An error occurred while shortening the URL'
+            )
         } finally {
             setLoading(false)
         }
     }
-
     return (
         <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 bg-white rounded shadow">
             <div className="mb-4">
