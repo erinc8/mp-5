@@ -15,16 +15,16 @@ export default function UrlForm() {
         setLoading(true)
 
         try {
-            // Process URL
+
             let processedUrl = url.trim()
             if (!/^https?:\/\//i.test(processedUrl)) {
                 processedUrl = `https://${processedUrl}`
             }
 
-            // Validate URL
-            new URL(processedUrl) // Throws error for invalid URLs
 
-            // API request
+            new URL(processedUrl)
+
+
             const res = await fetch('/api/shorten', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -34,15 +34,15 @@ export default function UrlForm() {
                 })
             })
 
-            // Handle response
+
             const data = await res.json()
 
             if (!res.ok) {
                 throw new Error(data.error || 'Failed to create short URL')
             }
 
-            // Set result with full URL
-            setResult(`${window.location.origin}/r/${data.alias}`)
+
+            setResult(`${window.location.origin}/${data.alias}`)
 
         } catch (err: any) {
             setError(

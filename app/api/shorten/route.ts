@@ -34,11 +34,12 @@ export async function POST(req: Request) {
         })
 
         return NextResponse.json({
-            shortUrl: `${process.env.NEXT_PUBLIC_HOST}/r/${alias}`
+            shortUrl: `${process.env.NEXT_PUBLIC_HOST}/${alias}`,
+            alias
         })
 
     } catch (error) {
-        // Always return JSON, even for errors!
+
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
