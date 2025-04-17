@@ -42,7 +42,7 @@ export default function UrlForm() {
             }
 
 
-            setResult(`${window.location.origin}/${data.alias}`)
+            setResult(`${window.location.origin}/r/${data.alias}`)
 
         } catch (err: any) {
             setError(

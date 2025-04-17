@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         })
 
         return NextResponse.json({
-            shortUrl: `${process.env.NEXT_PUBLIC_HOST}/${alias}`,
+            shortUrl: `${process.env.NEXT_PUBLIC_HOST}/r/${alias}`,
             alias
         })
 
